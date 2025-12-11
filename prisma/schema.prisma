@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  monitors     Monitor[]
+  alerts       Alert[]
+  integrations Integration[]
+  postmortems  Postmortem[]
+  subscription Subscription?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Monitor {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  name           String
+  url            String
+  method         HttpMethod   @default(GET)
+  expectedStatus Int          @default(200)
+  frequency      Int
+  isActive       Boolean      @default(true)
+  authType       AuthType     @default(NONE)
+  authData       Json?
+  monitorRuns    MonitorRun[]
+  alerts         Alert[]
+  postmortems    Postmortem[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model MonitorRun {
+  id           String   @id @default(cuid())
+  monitorId    String
+  monitor      Monitor  @relation(fields: [monitorId], references: [id])
+  statusCode   Int?
+  responseTime Int?
+  success      Boolean
+  message      String?
+  timestamp    DateTime @default(now())
+}
+
+model Alert {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  monitorId  String
+  monitor    Monitor   @relation(fields: [monitorId], references: [id])
+  type       AlertType @default(EMAIL)
+  message    String?
+  resolved   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+model Integration {
+  id        String          @id @default(cuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  type      IntegrationType
+  config    Json
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Subscription {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  plan            Plan     @default(FREE)
+  status          String   @default("active")
+  monitorsLimit   Int      @default(3)
+  intervalSeconds Int      @default(60)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Postmortem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  monitorId String
+  monitor   Monitor  @relation(fields: [monitorId], references: [id])
+  rootCause String
+  timeline  Json
+  writtenBy String?
+  createdAt DateTime @default(now())
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+enum AuthType {
+  NONE
+  HEADER
+  BEARER
+  BASIC
+}
+
+enum AlertType {
+  EMAIL
+  SLACK
+}
+
+enum IntegrationType {
+  SLACK
+  RESEND_EMAIL
+}
+
+enum Plan {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
