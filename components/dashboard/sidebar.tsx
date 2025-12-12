@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   Activity,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { useUser, useClerk } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -31,7 +32,44 @@ const navigation = [
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { user } = useUser()
+  const { signOut } = useClerk()
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/")
+  }
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!user) return "U"
+    const firstName = user.firstName || ""
+    const lastName = user.lastName || ""
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase()
+    }
+    if (firstName) return firstName.substring(0, 2).toUpperCase()
+    if (user.primaryEmailAddress) {
+      return user.primaryEmailAddress.emailAddress.substring(0, 2).toUpperCase()
+    }
+    return "U"
+  }
+
+  // Get display name
+  const getDisplayName = () => {
+    if (!user) return "Loading..."
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    }
+    return user.primaryEmailAddress?.emailAddress || "User"
+  }
+
+  // Get email
+  const getEmail = () => {
+    return user?.primaryEmailAddress?.emailAddress || "No email"
+  }
 
   return (
     <>
@@ -96,20 +134,23 @@ export function DashboardSidebar() {
 
         <div className="border-t border-border p-4">
           <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-              <span className="text-sm font-medium">JD</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span className="text-sm font-semibold">{getInitials()}</span>
             </div>
             <div className="flex-1 truncate">
-              <p className="truncate text-sm font-medium">John Doe</p>
-              <p className="truncate text-xs text-muted-foreground">john@example.com</p>
+              <p className="truncate text-sm font-medium">{getDisplayName()}</p>
+              <p className="truncate text-xs text-muted-foreground">{getEmail()}</p>
             </div>
           </div>
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </Button>
         </div>
       </aside>
     </>
