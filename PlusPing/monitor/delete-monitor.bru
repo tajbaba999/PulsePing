@@ -1,0 +1,16 @@
+meta {
+  name: Delete Monitor
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/monitor/{{monitorId}}
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+  x-test-user-id: cmj5g40r80001odljl3zv6fpq
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Get Monitor By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/monitor/{{monitorId}}
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+  x-test-user-id: cmj5g40r80001odljl3zv6fpq
+}

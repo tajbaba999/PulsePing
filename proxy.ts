@@ -6,10 +6,14 @@ const isPublicRoute = createRouteMatcher([
     '/register(.*)',
     '/sso-callback(.*)',
     '/api/webhooks(.*)',
+    '/api/test(.*)',  // Development test endpoints
 ])
 
 export default clerkMiddleware(async (auth, req) => {
-    if (!isPublicRoute(req)) {
+    // Allow test mode bypass in development
+    const isTestMode = req.headers.get('x-test-auth') === 'true' && process.env.NODE_ENV !== 'production'
+
+    if (!isPublicRoute(req) && !isTestMode) {
         await auth.protect()
     }
 })
