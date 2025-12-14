@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { sendMonitorFailureEmail } from "@/lib/email"
 
 export interface HealthCheckResult {
     success: boolean
@@ -13,17 +14,25 @@ export interface HealthCheckResult {
  */
 export async function performHealthCheck(monitorId: string): Promise<HealthCheckResult> {
     try {
-        // Fetch monitor details
+        // Fetch monitor details including user email for notifications
         const monitor = await prisma.monitor.findUnique({
             where: { id: monitorId },
             select: {
                 id: true,
+                name: true,
                 url: true,
                 method: true,
                 expectedStatus: true,
                 authType: true,
                 authData: true,
-                isActive: true
+                isActive: true,
+                project: {
+                    select: {
+                        user: {
+                            select: { email: true }
+                        }
+                    }
+                }
             }
         })
 
@@ -77,6 +86,8 @@ export async function performHealthCheck(monitorId: string): Promise<HealthCheck
         const statusCode = response.status
         const success = statusCode === monitor.expectedStatus
 
+        const failureMessage = `Expected status ${monitor.expectedStatus}, got ${statusCode}`
+
         // Store the result
         await prisma.monitorRun.create({
             data: {
@@ -84,23 +95,58 @@ export async function performHealthCheck(monitorId: string): Promise<HealthCheck
                 statusCode,
                 responseTime,
                 success,
-                message: success
-                    ? "Health check passed"
-                    : `Expected status ${monitor.expectedStatus}, got ${statusCode}`
+                message: success ? "Health check passed" : failureMessage
             }
         })
+
+        // Send email notification on failure
+        if (!success && monitor.project?.user?.email) {
+            await sendMonitorFailureEmail({
+                to: monitor.project.user.email,
+                monitorName: monitor.name,
+                url: monitor.url,
+                statusCode,
+                message: failureMessage,
+                responseTime
+            })
+        }
 
         return {
             success,
             statusCode,
             responseTime,
-            message: success
-                ? "Health check passed"
-                : `Expected status ${monitor.expectedStatus}, got ${statusCode}`
+            message: success ? "Health check passed" : failureMessage
         }
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error"
+
+        // Try to get monitor info for email notification
+        let userEmail: string | undefined
+        let monitorName = 'Unknown Monitor'
+        let monitorUrl = 'N/A'
+
+        try {
+            const monitorInfo = await prisma.monitor.findUnique({
+                where: { id: monitorId },
+                select: {
+                    name: true,
+                    url: true,
+                    project: {
+                        select: {
+                            user: { select: { email: true } }
+                        }
+                    }
+                }
+            })
+            if (monitorInfo) {
+                monitorName = monitorInfo.name
+                monitorUrl = monitorInfo.url
+                userEmail = monitorInfo.project?.user?.email
+            }
+        } catch (lookupError) {
+            console.error("Failed to fetch monitor info for email:", lookupError)
+        }
 
         // Try to store the failed result
         try {
@@ -113,6 +159,16 @@ export async function performHealthCheck(monitorId: string): Promise<HealthCheck
             })
         } catch (dbError) {
             console.error("Failed to store error result:", dbError)
+        }
+
+        // Send email notification for exception
+        if (userEmail) {
+            await sendMonitorFailureEmail({
+                to: userEmail,
+                monitorName,
+                url: monitorUrl,
+                message: errorMessage
+            })
         }
 
         return {
