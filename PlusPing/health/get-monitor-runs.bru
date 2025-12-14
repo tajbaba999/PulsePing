@@ -1,0 +1,19 @@
+meta {
+  name: Get Monitor Runs
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/health/runs/{{monitorId}}?limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 50
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

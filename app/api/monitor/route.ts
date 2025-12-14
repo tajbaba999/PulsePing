@@ -57,12 +57,36 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        console.log('📌 DEBUG: Creating monitor with:', { userId, body })
+        const { projectId, ...monitorData } = body
+
+        if (!projectId) {
+            return NextResponse.json(
+                { error: "projectId is required" },
+                { status: 400 }
+            )
+        }
+
+        // Verify the project exists and belongs to the user
+        const project = await prisma.project.findFirst({
+            where: {
+                id: projectId,
+                userId
+            }
+        })
+
+        if (!project) {
+            return NextResponse.json(
+                { error: "Project not found or access denied" },
+                { status: 404 }
+            )
+        }
+
+        console.log('📌 DEBUG: Creating monitor with:', { projectId, monitorData })
 
         const monitor = await prisma.monitor.create({
             data: {
-                ...body,
-                userId,
+                ...monitorData,
+                projectId,
             },
         })
 
@@ -94,10 +118,21 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        // Get all monitors from all projects owned by the user
         const monitors = await prisma.monitor.findMany({
-            where: { userId },
+            where: {
+                project: {
+                    userId
+                }
+            },
             orderBy: { createdAt: 'desc' },
             include: {
+                project: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
                 _count: {
                     select: { monitorRuns: true }
                 }

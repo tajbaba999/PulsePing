@@ -1,0 +1,20 @@
+meta {
+  name: Delete Project
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/project/{{projectId}}
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+  x-test-user-id: cmj5g40r80001odljl3zv6fpq
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
