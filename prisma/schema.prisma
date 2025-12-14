@@ -144,17 +144,26 @@ model Subscription {
 // POSTMORTEM
 // =====================================
 model Postmortem {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  monitorId String
-  monitor   Monitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
-  rootCause String
-  timeline  Json
-  writtenBy String?
-  createdAt DateTime @default(now())
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  monitorId     String
+  monitor       Monitor          @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  title         String
+  rootCause     String
+  timeline      Json
+  severity      Severity         @default(MINOR)
+  status        PostmortemStatus @default(DRAFT)
+  summary       String?
+  resolution    String?
+  writtenBy     String?
+  incidentStart DateTime?
+  incidentEnd   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@index([monitorId])
+  @@index([userId])
 }
 
 // =====================================
@@ -183,6 +192,17 @@ enum AlertType {
 enum IntegrationType {
   SLACK
   RESEND_EMAIL
+}
+
+enum Severity {
+  CRITICAL
+  MAJOR
+  MINOR
+}
+
+enum PostmortemStatus {
+  DRAFT
+  PUBLISHED
 }
 
 enum Plan {

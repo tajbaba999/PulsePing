@@ -1,0 +1,54 @@
+meta {
+  name: Create Postmortem
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/postmortem
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-test-auth: true
+  x-test-user-id: {{testUserId}}
+}
+
+body:json {
+  {
+    "monitorId": "your-monitor-id-here",
+    "title": "Database Cluster Outage",
+    "rootCause": "The primary database node experienced a disk failure causing automatic failover to not trigger properly.",
+    "timeline": [
+      {
+        "time": "2024-12-14T10:15:00Z",
+        "event": "Monitoring alerts triggered for database latency"
+      },
+      {
+        "time": "2024-12-14T10:18:00Z",
+        "event": "Engineering team notified via PagerDuty"
+      },
+      {
+        "time": "2024-12-14T10:25:00Z",
+        "event": "Root cause identified as disk failure on primary node"
+      },
+      {
+        "time": "2024-12-14T10:45:00Z",
+        "event": "Manual failover to secondary node completed"
+      },
+      {
+        "time": "2024-12-14T11:00:00Z",
+        "event": "Service fully restored"
+      }
+    ],
+    "severity": "CRITICAL",
+    "status": "DRAFT",
+    "summary": "A 45-minute outage affecting all database operations due to primary node disk failure.",
+    "resolution": "Manual failover to secondary node. Disk replacement scheduled for primary node.",
+    "writtenBy": "John Doe",
+    "incidentStart": "2024-12-14T10:15:00Z",
+    "incidentEnd": "2024-12-14T11:00:00Z"
+  }
+}
