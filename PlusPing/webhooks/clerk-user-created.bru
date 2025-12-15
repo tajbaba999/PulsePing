@@ -1,0 +1,43 @@
+meta {
+  name: User Created
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://uncensuring-loreta-touchedly.ngrok-free.dev/api/webhooks/clerk
+  body: json
+  auth: none
+}
+
+headers {
+  svix-id: msg_test123
+  svix-timestamp: 1702484960
+  svix-signature: v1,test_signature_here
+  x-test-webhook: true
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "data": {
+      "id": "user_2abcdefghijk",
+      "email_addresses": [
+        {
+          "email_address": "testuser@example.com",
+          "id": "idn_123",
+          "verification": {
+            "status": "verified"
+          }
+        }
+      ],
+      "first_name": "Test",
+      "last_name": "User",
+      "image_url": "https://img.clerk.com/test.jpg",
+      "primary_email_address_id": "idn_123",
+      "username": null
+    },
+    "object": "event",
+    "type": "user.created"
+  }
+}

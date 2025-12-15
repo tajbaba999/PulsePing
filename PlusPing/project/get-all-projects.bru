@@ -1,0 +1,16 @@
+meta {
+  name: Get All Projects
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/project
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+  x-test-user-id: cmj5g40r80001odljl3zv6fpq
+}

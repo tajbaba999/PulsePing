@@ -1,0 +1,16 @@
+meta {
+  name: Delete Postmortem
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/postmortem/{{postmortemId}}
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+  x-test-user-id: {{testUserId}}
+}

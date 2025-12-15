@@ -1,0 +1,24 @@
+meta {
+  name: Update Monitor
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/monitor/{{monitorId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-test-auth: true
+  x-test-user-id: {{testUserId}}
+}
+
+body:json {
+  {
+    "name": "Updated Website Name",
+    "frequency": 120
+  }
+}

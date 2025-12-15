@@ -1,0 +1,34 @@
+meta {
+  name: Create Project
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/project
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-test-auth: true
+  x-test-user-id: cmj5g40r80001odljl3zv6fpq
+}
+
+body:json {
+  {
+    "name": "My New Project",
+    "description": "A project for monitoring my services"
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
+
+script:post-response {
+  if (res.body.project && res.body.project.id) {
+    bru.setEnvVar("projectId", res.body.project.id);
+  }
+}

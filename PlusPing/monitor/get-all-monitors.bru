@@ -1,0 +1,16 @@
+meta {
+  name: Get All Monitors
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/monitor
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+  x-test-user-id: {{testUserId}}
+}

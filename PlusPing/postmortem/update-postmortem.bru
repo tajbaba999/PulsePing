@@ -1,0 +1,24 @@
+meta {
+  name: Update Postmortem
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/postmortem/{{postmortemId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-test-auth: true
+  x-test-user-id: {{testUserId}}
+}
+
+body:json {
+  {
+    "status": "PUBLISHED",
+    "resolution": "Implemented automatic failover monitoring and replaced faulty disk."
+  }
+}

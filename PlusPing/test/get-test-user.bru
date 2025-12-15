@@ -1,0 +1,15 @@
+meta {
+  name: Get Test User
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/test/user
+  body: none
+  auth: none
+}
+
+headers {
+  x-test-auth: true
+}
