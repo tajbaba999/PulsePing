@@ -1,108 +1,78 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { IntegrationCard } from "@/components/dashboard/integration-card"
-
-const integrations = [
-  {
-    id: "slack",
-    name: "Slack",
-    description: "Get instant alerts in your Slack channels when monitors go down or recover.",
-    icon: "/slack-logo.png",
-    connected: true,
-    status: "#alerts-channel",
-  },
-  {
-    id: "email",
-    name: "Email",
-    description: "Receive email notifications for all monitoring events.",
-    icon: "/email-icon.png",
-    connected: true,
-    status: "team@example.com",
-  },
-  {
-    id: "pagerduty",
-    name: "PagerDuty",
-    description: "Trigger PagerDuty incidents when critical monitors fail.",
-    icon: "/pagerduty-logo.png",
-    connected: false,
-    status: null,
-  },
-  {
-    id: "discord",
-    name: "Discord",
-    description: "Send alerts to Discord channels via webhooks.",
-    icon: "/discord-logo.png",
-    connected: false,
-    status: null,
-  },
-  {
-    id: "webhook",
-    name: "Webhook",
-    description: "Send HTTP POST requests to any URL when events occur.",
-    icon: "/webhook-icon.png",
-    connected: true,
-    status: "3 endpoints configured",
-  },
-  {
-    id: "teams",
-    name: "Microsoft Teams",
-    description: "Post alerts to Microsoft Teams channels.",
-    icon: "/microsoft-teams-logo.png",
-    connected: false,
-    status: null,
-  },
-]
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Mail, CheckCircle2 } from "lucide-react"
 
 export default function IntegrationsPage() {
-  const connectedCount = integrations.filter((i) => i.connected).length
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Integrations</h1>
-        <p className="text-muted-foreground">Connect PulsePing with your favorite tools and services.</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Connected</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{connectedCount}</div>
-            <p className="text-xs text-muted-foreground">Active integrations</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Available</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{integrations.length - connectedCount}</div>
-            <p className="text-xs text-muted-foreground">More to connect</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Notifications Sent</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">This month</p>
-          </CardContent>
-        </Card>
+        <h1 className="text-2xl font-bold tracking-tight">Email Notifications</h1>
+        <p className="text-muted-foreground">Configure email alerts for your monitors.</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Available Integrations</CardTitle>
-          <CardDescription>Connect your monitoring alerts with external services</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {integrations.map((integration) => (
-              <IntegrationCard key={integration.id} integration={integration} />
-            ))}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Mail className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle>Email Alerts</CardTitle>
+              <CardDescription>Receive email notifications when monitors go down or recover</CardDescription>
+            </div>
           </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Enable Email Notifications</Label>
+              <p className="text-sm text-muted-foreground">Send email alerts when monitor status changes</p>
+            </div>
+            <Switch defaultChecked />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Notification Email</Label>
+            <Input id="email" type="email" placeholder="alerts@example.com" />
+            <p className="text-xs text-muted-foreground">
+              Email address where alerts will be sent. You can add additional emails in monitor settings.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <Label>Notification Types</Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Monitor Down</p>
+                  <p className="text-xs text-muted-foreground">Alert when a monitor fails</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Monitor Recovered</p>
+                  <p className="text-xs text-muted-foreground">Alert when a monitor recovers</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Daily Summary</p>
+                  <p className="text-xs text-muted-foreground">Daily report of all monitor activity</p>
+                </div>
+                <Switch />
+              </div>
+            </div>
+          </div>
+
+          <Button className="w-full sm:w-auto">
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Save Settings
+          </Button>
         </CardContent>
       </Card>
     </div>

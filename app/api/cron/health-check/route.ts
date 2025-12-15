@@ -9,7 +9,21 @@ import { performHealthCheck } from "@/lib/health-check"
  */
 export async function POST(request: NextRequest) {
     try {
-        const { monitorId } = await request.json()
+        // Safely parse JSON body
+        let body: { monitorId?: string } = {}
+        try {
+            const text = await request.text()
+            if (text) {
+                body = JSON.parse(text)
+            }
+        } catch {
+            return NextResponse.json(
+                { error: "Invalid JSON body" },
+                { status: 400 }
+            )
+        }
+
+        const { monitorId } = body
 
         if (!monitorId) {
             return NextResponse.json(

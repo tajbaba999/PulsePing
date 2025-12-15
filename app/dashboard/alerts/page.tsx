@@ -1,43 +1,68 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangle, CheckCircle2, Clock, Filter } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Clock, Loader2 } from "lucide-react"
 import { AlertsList } from "@/components/dashboard/alerts-list"
 
-const alertStats = [
-  {
-    title: "Active Incidents",
-    value: "3",
-    icon: AlertTriangle,
-    color: "text-red-500",
-  },
-  {
-    title: "Resolved Today",
-    value: "7",
-    icon: CheckCircle2,
-    color: "text-emerald-500",
-  },
-  {
-    title: "Avg Resolution Time",
-    value: "12m",
-    icon: Clock,
-    color: "text-muted-foreground",
-  },
-]
+interface AlertStats {
+  activeIncidents: number
+  resolvedToday: number
+  totalAlerts: number
+}
 
 export default function AlertsPage() {
+  const [stats, setStats] = useState<AlertStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const response = await fetch('/api/alerts')
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data.stats)
+        }
+      } catch (err) {
+        console.error('Failed to fetch alert stats:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const alertStats = [
+    {
+      title: "Active Incidents",
+      value: loading ? "-" : stats?.activeIncidents?.toString() || "0",
+      icon: AlertTriangle,
+      color: "text-red-500",
+    },
+    {
+      title: "Resolved Today",
+      value: loading ? "-" : stats?.resolvedToday?.toString() || "0",
+      icon: CheckCircle2,
+      color: "text-emerald-500",
+    },
+    {
+      title: "Total Failures",
+      value: loading ? "-" : stats?.totalAlerts?.toString() || "0",
+      icon: Clock,
+      color: "text-muted-foreground",
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
-          <p className="text-muted-foreground">View and manage all your monitoring alerts.</p>
-        </div>
-        <Button variant="outline" className="gap-2 bg-transparent">
-          <Filter className="h-4 w-4" />
-          Filter
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
+        <p className="text-muted-foreground">View failed health checks across all monitors.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -48,7 +73,9 @@ export default function AlertsPage() {
               <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stat.value}
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -57,52 +84,21 @@ export default function AlertsPage() {
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">
-            All Alerts
+            All Failures
             <Badge variant="secondary" className="ml-2">
-              24
+              {stats?.totalAlerts || 0}
             </Badge>
           </TabsTrigger>
-          <TabsTrigger value="active">
-            Active
-            <Badge variant="destructive" className="ml-2">
-              3
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="resolved">Resolved</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
           <Card>
             <CardHeader>
-              <CardTitle>All Alerts</CardTitle>
-              <CardDescription>Complete history of alerts across all monitors</CardDescription>
+              <CardTitle>Failed Health Checks</CardTitle>
+              <CardDescription>History of failed health checks across all monitors</CardDescription>
             </CardHeader>
             <CardContent>
               <AlertsList />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="active">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Alerts</CardTitle>
-              <CardDescription>Currently ongoing incidents that need attention</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AlertsList filter="active" />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="resolved">
-          <Card>
-            <CardHeader>
-              <CardTitle>Resolved Alerts</CardTitle>
-              <CardDescription>Past incidents that have been resolved</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AlertsList filter="resolved" />
             </CardContent>
           </Card>
         </TabsContent>
