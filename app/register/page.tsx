@@ -1,8 +1,17 @@
 import { RegisterForm } from "@/components/auth/register-form"
 import { Activity } from "lucide-react"
 import Link from "next/link"
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  // Check if user is already logged in
+  const { userId } = await auth()
+
+  if (userId) {
+    redirect("/dashboard")
+  }
+
   return (
     <div className="flex min-h-screen">
       {/* Left side - Decorative */}

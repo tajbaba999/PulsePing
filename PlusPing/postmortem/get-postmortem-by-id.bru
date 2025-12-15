@@ -5,13 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/postmortem/:id
+  url: {{baseUrl}}/api/postmortem/{{postmortemId}}
   body: none
   auth: none
-}
-
-params:path {
-  id: your-postmortem-id-here
 }
 
 headers {

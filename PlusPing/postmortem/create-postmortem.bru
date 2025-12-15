@@ -18,7 +18,7 @@ headers {
 
 body:json {
   {
-    "monitorId": "your-monitor-id-here",
+    "monitorId": "{{monitorId}}",
     "title": "Database Cluster Outage",
     "rootCause": "The primary database node experienced a disk failure causing automatic failover to not trigger properly.",
     "timeline": [
@@ -50,5 +50,11 @@ body:json {
     "writtenBy": "John Doe",
     "incidentStart": "2024-12-14T10:15:00Z",
     "incidentEnd": "2024-12-14T11:00:00Z"
+  }
+}
+
+script:post-response {
+  if (res.body.postmortem && res.body.postmortem.id) {
+    bru.setEnvVar("postmortemId", res.body.postmortem.id);
   }
 }
