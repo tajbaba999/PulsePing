@@ -58,10 +58,12 @@ model Monitor {
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name           String
   url            String
+  description    String?
   method         HttpMethod   @default(GET)
   expectedStatus Int          @default(200)
   frequency      Int // interval in seconds
   isActive       Boolean      @default(true)
+  alertEmail     String?
   authType       AuthType     @default(NONE)
   authData       Json?
   monitorRuns    MonitorRun[]

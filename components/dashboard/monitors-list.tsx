@@ -1,81 +1,29 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 
-const monitors = [
-  {
-    id: "1",
-    name: "Production API",
-    url: "api.example.com/health",
-    status: "operational",
-    uptime: 99.9,
-    responseTime: 142,
-    lastChecked: "30s ago",
-  },
-  {
-    id: "2",
-    name: "Authentication Service",
-    url: "auth.example.com/status",
-    status: "operational",
-    uptime: 99.8,
-    responseTime: 89,
-    lastChecked: "15s ago",
-  },
-  {
-    id: "3",
-    name: "Payment Gateway",
-    url: "payments.example.com/ping",
-    status: "degraded",
-    uptime: 98.5,
-    responseTime: 456,
-    lastChecked: "45s ago",
-  },
-  {
-    id: "4",
-    name: "CDN Health",
-    url: "cdn.example.com/health",
-    status: "operational",
-    uptime: 100,
-    responseTime: 23,
-    lastChecked: "20s ago",
-  },
-  {
-    id: "5",
-    name: "Database Cluster",
-    url: "db.example.com/status",
-    status: "down",
-    uptime: 97.2,
-    responseTime: 0,
-    lastChecked: "10s ago",
-  },
-  {
-    id: "6",
-    name: "Search Service",
-    url: "search.example.com/health",
-    status: "operational",
-    uptime: 99.9,
-    responseTime: 156,
-    lastChecked: "25s ago",
-  },
-  {
-    id: "7",
-    name: "Email Service",
-    url: "mail.example.com/status",
-    status: "operational",
-    uptime: 99.7,
-    responseTime: 234,
-    lastChecked: "35s ago",
-  },
-  {
-    id: "8",
-    name: "Analytics API",
-    url: "analytics.example.com/ping",
-    status: "operational",
-    uptime: 99.95,
-    responseTime: 112,
-    lastChecked: "40s ago",
-  },
-]
+interface Monitor {
+  id: string
+  name: string
+  url: string
+  frequency: number
+  isActive: boolean
+  project: {
+    id: string
+    name: string
+  }
+  _count: {
+    monitorRuns: number
+  }
+  // Stats will be loaded separately
+  uptime?: number
+  avgResponseTime?: number
+  lastStatus?: 'operational' | 'degraded' | 'down'
+}
 
 const statusConfig = {
   operational: {
@@ -93,6 +41,11 @@ const statusConfig = {
     color: "bg-red-500",
     badge: "destructive",
   },
+  unknown: {
+    label: "Unknown",
+    color: "bg-gray-500",
+    badge: "secondary",
+  },
 } as const
 
 interface MonitorsListProps {
@@ -100,13 +53,94 @@ interface MonitorsListProps {
   showAll?: boolean
 }
 
+interface MonitorWithStats extends Monitor {
+  stats?: {
+    uptime: number
+    avgResponseTime: number
+    lastStatus: 'operational' | 'down' | 'unknown'
+  }
+}
+
 export function MonitorsList({ limit, showAll = false }: MonitorsListProps) {
+  const [monitors, setMonitors] = useState<MonitorWithStats[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchMonitors() {
+      try {
+        const response = await fetch('/api/monitor')
+        if (!response.ok) throw new Error('Failed to fetch monitors')
+        const data = await response.json()
+
+        // Fetch stats for each monitor
+        const monitorsWithStats = await Promise.all(
+          (data.monitors || []).map(async (monitor: Monitor) => {
+            try {
+              const statsRes = await fetch(`/api/monitor/${monitor.id}/stats`)
+              if (statsRes.ok) {
+                const statsData = await statsRes.json()
+                return {
+                  ...monitor,
+                  stats: statsData.stats
+                }
+              }
+            } catch (e) {
+              console.error(`Failed to fetch stats for monitor ${monitor.id}`)
+            }
+            return monitor
+          })
+        )
+
+        setMonitors(monitorsWithStats)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load monitors')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchMonitors()
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchMonitors, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-destructive">
+        {error}
+      </div>
+    )
+  }
+
+  if (monitors.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>No monitors yet.</p>
+        <p className="text-sm">Create your first monitor to start tracking your APIs.</p>
+      </div>
+    )
+  }
+
   const displayMonitors = limit ? monitors.slice(0, limit) : monitors
 
   return (
     <div className="space-y-3">
       {displayMonitors.map((monitor) => {
-        const config = statusConfig[monitor.status]
+        const status = monitor.stats?.lastStatus || 'unknown'
+        const config = statusConfig[status]
+        const uptime = monitor.stats?.uptime ?? 0
+        const responseTime = monitor.stats?.avgResponseTime ?? 0
+
         return (
           <Link
             key={monitor.id}
@@ -124,11 +158,11 @@ export function MonitorsList({ limit, showAll = false }: MonitorsListProps) {
               {showAll && (
                 <>
                   <div className="hidden sm:block">
-                    <p className="text-sm font-medium">{monitor.uptime}%</p>
+                    <p className="text-sm font-medium">{uptime.toFixed(1)}%</p>
                     <p className="text-xs text-muted-foreground">Uptime</p>
                   </div>
                   <div className="hidden md:block">
-                    <p className="text-sm font-medium">{monitor.responseTime}ms</p>
+                    <p className="text-sm font-medium">{responseTime}ms</p>
                     <p className="text-xs text-muted-foreground">Response</p>
                   </div>
                 </>

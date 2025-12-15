@@ -1,41 +1,92 @@
 "use client"
 
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useEffect, useState } from "react"
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
+import { Loader2 } from "lucide-react"
 
-const data = [
-  { time: "00:00", uptime: 99.9, responseTime: 145 },
-  { time: "02:00", uptime: 99.8, responseTime: 152 },
-  { time: "04:00", uptime: 100, responseTime: 138 },
-  { time: "06:00", uptime: 99.9, responseTime: 141 },
-  { time: "08:00", uptime: 99.7, responseTime: 167 },
-  { time: "10:00", uptime: 98.5, responseTime: 245 },
-  { time: "12:00", uptime: 99.2, responseTime: 189 },
-  { time: "14:00", uptime: 99.9, responseTime: 142 },
-  { time: "16:00", uptime: 100, responseTime: 135 },
-  { time: "18:00", uptime: 99.8, responseTime: 148 },
-  { time: "20:00", uptime: 99.9, responseTime: 144 },
-  { time: "22:00", uptime: 100, responseTime: 139 },
-]
+interface ChartData {
+  time: string
+  uptime: number
+  responseTime: number
+}
 
-export function UptimeChart() {
+interface UptimeChartProps {
+  data?: ChartData[]
+}
+
+export function UptimeChart({ data: propData }: UptimeChartProps) {
+  const [data, setData] = useState<ChartData[]>(propData || [])
+  const [loading, setLoading] = useState(!propData)
+
+  useEffect(() => {
+    if (propData) {
+      setData(propData)
+      return
+    }
+
+    async function fetchData() {
+      try {
+        const response = await fetch('/api/dashboard/stats')
+        if (response.ok) {
+          const result = await response.json()
+          setData(result.hourlyData || [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch uptime chart data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+    const interval = setInterval(fetchData, 60000) // Refresh every minute
+    return () => clearInterval(interval)
+  }, [propData])
+
+  if (loading) {
+    return (
+      <div className="h-[300px] flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+        No data available yet. Create monitors to see uptime data.
+      </div>
+    )
+  }
+
   return (
     <div className="h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
             <linearGradient id="uptimeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+              <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#10b981" stopOpacity={0.05} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-          <YAxis
-            stroke="hsl(var(--muted-foreground))"
-            fontSize={12}
+          <CartesianGrid strokeDasharray="3 3" className="stroke-border" opacity={0.3} />
+          <XAxis
+            dataKey="time"
+            fontSize={10}
             tickLine={false}
             axisLine={false}
-            domain={[95, 100]}
+            tick={{ fill: 'currentColor' }}
+            className="text-muted-foreground"
+          />
+          <YAxis
+            fontSize={10}
+            tickLine={false}
+            axisLine={false}
+            domain={[90, 100]}
             tickFormatter={(value) => `${value}%`}
+            width={40}
+            tick={{ fill: 'currentColor' }}
+            className="text-muted-foreground"
           />
           <Tooltip
             content={({ active, payload }) => {
@@ -58,7 +109,7 @@ export function UptimeChart() {
           <Area
             type="monotone"
             dataKey="uptime"
-            stroke="hsl(var(--chart-1))"
+            stroke="#10b981"
             strokeWidth={2}
             fill="url(#uptimeGradient)"
           />

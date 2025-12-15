@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/prisma"
 import { headers } from "next/headers"
 
@@ -23,10 +23,28 @@ async function getDbUserId(): Promise<string | null> {
     if (!clerkId) return null
 
     // Look up the internal database user ID from Clerk ID
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
         where: { clerkId },
         select: { id: true }
     })
+
+    // If user doesn't exist in database, create them
+    if (!user) {
+        const clerkUser = await currentUser()
+        if (clerkUser) {
+            user = await prisma.user.create({
+                data: {
+                    clerkId: clerkUser.id,
+                    email: clerkUser.emailAddresses[0]?.emailAddress || '',
+                    firstName: clerkUser.firstName || null,
+                    lastName: clerkUser.lastName || null,
+                    imageUrl: clerkUser.imageUrl || null,
+                },
+                select: { id: true }
+            })
+            console.log('✅ Auto-created user in database:', user.id)
+        }
+    }
 
     return user?.id || null
 }

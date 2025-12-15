@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
+  FolderKanban,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -22,6 +23,7 @@ import { useUser, useClerk } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Monitors", href: "/dashboard/monitors", icon: Monitor },
   { name: "Alerts", href: "/dashboard/alerts", icon: Bell },
   { name: "Integrations", href: "/dashboard/integrations", icon: Plug },
