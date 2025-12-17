@@ -197,9 +197,6 @@ export function RegisterForm() {
         </Label>
       </div>
 
-      {/* Clerk CAPTCHA element for bot protection */}
-      <div id="clerk-captcha" />
-
       <Button type="submit" className="w-full" disabled={isLoading || !agreed || !isLoaded}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Create account

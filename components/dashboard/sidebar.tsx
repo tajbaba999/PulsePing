@@ -8,13 +8,13 @@ import {
   LayoutDashboard,
   Monitor,
   Bell,
-  Plug,
-  CreditCard,
+  Mail,
   Settings,
   FileText,
   LogOut,
   ChevronLeft,
   Menu,
+  FolderKanban,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -22,12 +22,12 @@ import { useUser, useClerk } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
   { name: "Monitors", href: "/dashboard/monitors", icon: Monitor },
   { name: "Alerts", href: "/dashboard/alerts", icon: Bell },
-  { name: "Integrations", href: "/dashboard/integrations", icon: Plug },
-  { name: "Billing", href: "/dashboard/billing", icon: CreditCard },
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
   { name: "Postmortems", href: "/dashboard/postmortems", icon: FileText },
+  { name: "Integrations", href: "/dashboard/integrations", icon: Mail },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
 export function DashboardSidebar() {
