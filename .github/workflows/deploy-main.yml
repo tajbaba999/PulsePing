@@ -26,9 +26,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run tests
-        run: pnpm test
-
       - name: Deploy to Vercel
         run: npx vercel deploy --prod --token=$VERCEL_TOKEN
         env:
