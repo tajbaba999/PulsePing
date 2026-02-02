@@ -11,19 +11,12 @@ export function CTASection() {
           <p className="mb-8 text-lg text-muted-foreground">
             Join thousands of teams who trust PulsePing to keep their APIs running smoothly.
           </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href="/register">
-              <Button size="lg" className="gap-2">
-                Start free trial
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline" size="lg">
-                Talk to sales
-              </Button>
-            </Link>
-          </div>
+          <Link href="/register">
+            <Button size="lg" className="gap-2">
+              Get Started
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
